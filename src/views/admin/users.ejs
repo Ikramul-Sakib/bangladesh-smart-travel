@@ -1,0 +1,86 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container-fluid container-xl py-4">
+  <div class="row g-4">
+    <div class="col-lg-3">
+      <%- include('../partials/adminSidebar') %>
+    </div>
+
+    <div class="col-lg-9">
+      <h3 class="fw-bold mb-3">Users & Tour Agent Approvals</h3>
+
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Name & Email</th>
+                  <th>Phone</th>
+                  <th>Role</th>
+                  <th>Agency Details</th>
+                  <th>Account Status</th>
+                  <th>Agent Verification</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach(u => { %>
+                  <tr>
+                    <td>
+                      <div class="fw-bold"><%= u.full_name %></div>
+                      <div class="text-muted"><%= u.email %></div>
+                    </td>
+                    <td><%= u.phone %></td>
+                    <td><span class="badge bg-secondary text-uppercase"><%= u.role %></span></td>
+                    <td>
+                      <% if (u.role === 'agent') { %>
+                        <div class="fw-semibold"><%= u.agency_name %></div>
+                        <div class="text-muted">Fee: ৳<%= u.base_service_fee_bdt %> | Cap: <%= u.max_group_capacity %></div>
+                      <% } else { %>
+                        <span class="text-muted">—</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <span class="badge bg-<%= u.status === 'active' ? 'success' : 'danger' %> text-uppercase">
+                        <%= u.status %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if (u.role === 'agent' && u.agent_profile_id) { %>
+                        <form action="/admin/agents/<%= u.agent_profile_id %>/verify" method="POST" class="d-inline">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                          <input type="hidden" name="is_verified" value="<%= u.is_verified ? '0' : '1' %>" />
+                          <button type="submit" class="btn btn-sm <%= u.is_verified ? 'btn-success' : 'btn-outline-warning text-dark' %> py-0 px-2">
+                            <%= u.is_verified ? 'Verified ✓' : 'Approve Agent' %>
+                          </button>
+                        </form>
+                      <% } else { %>
+                        <span class="text-muted">—</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (u.role !== 'admin') { %>
+                        <form action="/admin/users/<%= u.id %>/status" method="POST" class="d-inline">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                          <input type="hidden" name="status" value="<%= u.status === 'active' ? 'suspended' : 'active' %>" />
+                          <button type="submit" class="btn btn-sm <%= u.status === 'active' ? 'btn-outline-danger' : 'btn-outline-success' %> py-0 px-2">
+                            <%= u.status === 'active' ? 'Suspend' : 'Activate' %>
+                          </button>
+                        </form>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

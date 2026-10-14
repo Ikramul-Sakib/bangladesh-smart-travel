@@ -1,0 +1,106 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4 p-md-5">
+      <div class="row align-items-center g-4">
+        <div class="col-md-8">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <% if (agent.is_verified) { %>
+              <span class="badge bg-success"><i class="bi bi-patch-check-fill me-1"></i>Verified Bangladesh Tour Operator</span>
+            <% } else { %>
+              <span class="badge bg-secondary">Demonstration Agent Profile</span>
+            <% } %>
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-star-fill me-1"></i><%= Number(agent.rating_avg).toFixed(1) %> (<%= agent.review_count %> reviews)
+            </span>
+          </div>
+          <h2 class="fw-bold mb-1"><%= agent.agency_name %></h2>
+          <p class="text-muted mb-3">Lead Tour Coordinator: <strong><%= agent.agent_name %></strong> &bull; Languages: <%= agent.languages_spoken %></p>
+          <p class="text-secondary mb-3"><%= agent.bio || 'Experienced local tour guide and logistics coordinator across Bangladesh.' %></p>
+          <div class="d-flex flex-wrap gap-3 small">
+            <span><i class="bi bi-people-fill text-bd-emerald me-1"></i><strong>Max Group Capacity:</strong> <%= agent.max_group_capacity %> pax</span>
+            <span><i class="bi bi-tag-fill text-bd-emerald me-1"></i><strong>Tour Types:</strong> <%= agent.tour_types %></span>
+            <span><i class="bi bi-check2-circle text-bd-emerald me-1"></i><strong>Services:</strong> <%= agent.services_offered %></span>
+          </div>
+        </div>
+
+        <div class="col-md-4 text-md-end">
+          <div class="bg-light p-4 rounded-4 border text-center">
+            <div class="small text-muted">Base Service Charge</div>
+            <div class="display-6 fw-bold text-bd-emerald mb-2">৳<%= Number(agent.base_service_fee_bdt).toLocaleString() %></div>
+            <a
+              href="/bookings/new?agent_profile_id=<%= agent.id %>&destination_id=<%= queryContext.destination_id %>&departure_date=<%= queryContext.departure_date %>&return_date=<%= queryContext.return_date %>&travelers_count=<%= queryContext.travelers_count %>&travel_plan_id=<%= queryContext.travel_plan_id %>"
+              class="btn btn-bd-emerald w-100 fw-semibold py-2"
+            >
+              <i class="bi bi-calendar2-plus me-1"></i>Send Booking Request
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Destinations & Custom Fees -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt-fill text-bd-emerald me-2"></i>Destinations Served & Fees</h5>
+          <ul class="list-group list-group-flush small">
+            <% destinations.forEach(d => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <div>
+                  <a href="/destinations/<%= d.slug %>" class="fw-bold text-decoration-none text-dark"><%= d.destination_name %></a>
+                  <span class="text-muted ms-1">(<%= d.division %>)</span>
+                </div>
+                <span class="fw-bold text-bd-emerald">
+                  ৳<%= Number(d.custom_service_fee_bdt || agent.base_service_fee_bdt).toLocaleString() %>
+                </span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Availability Calendar & Confirmed Tours -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-calendar3 text-bd-emerald me-2"></i>Availability Calendar & Schedule</h5>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% availabilities.forEach(a => { %>
+                  <tr>
+                    <td><%= new Date(a.start_date).toLocaleDateString() %></td>
+                    <td><%= new Date(a.end_date).toLocaleDateString() %></td>
+                    <td>
+                      <span class="badge bg-<%= a.status === 'available' ? 'success' : 'danger' %> text-uppercase">
+                        <%= a.status %>
+                      </span>
+                    </td>
+                    <td class="text-muted"><%= a.notes || '—' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

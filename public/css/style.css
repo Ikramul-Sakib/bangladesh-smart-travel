@@ -1,0 +1,43 @@
+:root {
+    --bd-emerald: #0a5c36;
+    --bd-emerald-dark: #063d23;
+    --bd-teal: #0d7377;
+    --bd-sand: #f4f1ea;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.bg-bd-emerald {
+    background-color: var(--bd-emerald) !important;
+}
+
+.text-bd-emerald {
+    color: var(--bd-emerald) !important;
+}
+
+.btn-bd-emerald {
+    background-color: var(--bd-emerald);
+    color: #ffffff;
+    border-color: var(--bd-emerald);
+}
+
+.btn-bd-emerald:hover {
+    background-color: var(--bd-emerald-dark);
+    color: #ffffff;
+}
+
+.hero-banner {
+    background: linear-gradient(135deg, rgba(6, 61, 35, 0.94) 0%, rgba(13, 115, 119, 0.9) 100%);
+    border-bottom: 4px solid #ffc107;
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

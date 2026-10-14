@@ -1,0 +1,150 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+            <div class="container-fluid container-xl py-4">
+                <div class="row g-4">
+                    <div class="col-lg-3">
+                        <%- include('../partials/adminSidebar') %>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                            <div>
+                                <h3 class="fw-bold mb-1">System Statistics & Cost Overview</h3>
+                                <p class="text-muted small mb-0">
+                                    All travel costs are manually maintained and labeled as <strong>Estimated</strong>
+                                    unless verified.
+                                </p>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-success btn-sm dropdown-toggle"
+                                    data-bs-toggle="dropdown">
+                                    <i class="bi bi-filetype-csv me-1"></i>Export Cost CSVs
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li><a class="dropdown-item small" href="/admin/csv/export/transport">Export
+                                            Transport Fares (.csv)</a></li>
+                                    <li><a class="dropdown-item small" href="/admin/csv/export/food">Export Meal Plans
+                                            (.csv)</a></li>
+                                    <li><a class="dropdown-item small" href="/admin/csv/export/additional">Export
+                                            Additional Expenses (.csv)</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card border-0 shadow-sm rounded-4 p-3">
+                                    <div class="text-muted small fw-semibold">Active Destinations</div>
+                                    <h3 class="fw-bold text-bd-emerald my-1">
+                                        <%= stats.catalogCounts.active_destinations || 0 %>
+                                    </h3>
+                                    <div class="small text-secondary">
+                                        <%= stats.catalogCounts.active_transport_routes || 0 %> transport routes
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card border-0 shadow-sm rounded-4 p-3">
+                                    <div class="text-muted small fw-semibold">Listed Hotels</div>
+                                    <h3 class="fw-bold text-primary my-1">
+                                        <%= stats.catalogCounts.active_hotels || 0 %>
+                                    </h3>
+                                    <div class="small text-secondary">
+                                        <%= stats.catalogCounts.total_travel_plans || 0 %> plans generated
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card border-0 shadow-sm rounded-4 p-3">
+                                    <div class="text-muted small fw-semibold">Registered Tour Agents</div>
+                                    <h3 class="fw-bold text-warning-emphasis my-1">
+                                        <%= stats.userCounts.total_agents || 0 %>
+                                    </h3>
+                                    <div class="small text-secondary">
+                                        <%= stats.agentVerifyCounts.verified_agents || 0 %> verified / <%=
+                                                stats.agentVerifyCounts.unverified_agents || 0 %> pending
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card border-0 shadow-sm rounded-4 p-3">
+                                    <div class="text-muted small fw-semibold">Confirmed Agent Fees</div>
+                                    <h3 class="fw-bold text-success my-1">৳<%=
+                                            Number(stats.bookingCounts.confirmed_agent_fees_bdt || 0).toLocaleString()
+                                            %>
+                                    </h3>
+                                    <div class="small text-secondary">
+                                        <%= stats.bookingCounts.confirmed_bookings || 0 %> confirmed bookings
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Bookings Table -->
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold mb-0">Recent Tour Agent Booking Requests</h5>
+                                    <a href="/admin/bookings"
+                                        class="btn btn-sm btn-link text-bd-emerald text-decoration-none">View All</a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle small mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Reference</th>
+                                                <th>Tourist</th>
+                                                <th>Destination</th>
+                                                <th>Agency</th>
+                                                <th>Dates</th>
+                                                <th>Agent Fee</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (stats.recentBookings && stats.recentBookings.length> 0) { %>
+                                                <% stats.recentBookings.forEach(b=> { %>
+                                                    <tr>
+                                                        <td><code><%= b.booking_reference %></code></td>
+                                                        <td>
+                                                            <%= b.tourist_name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.destination_name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= b.agency_name %>
+                                                        </td>
+                                                        <td>
+                                                            <%= new Date(b.departure_date).toLocaleDateString() %> - <%=
+                                                                    new Date(b.return_date).toLocaleDateString() %>
+                                                        </td>
+                                                        <td>৳<%= Number(b.agreed_agent_fee_bdt).toLocaleString() %>
+                                                        </td>
+                                                        <td>
+                                                            <span
+                                                                class="badge bg-<%= b.status === 'confirmed' ? 'success' : (b.status === 'rejected' ? 'danger' : 'warning text-dark') %>">
+                                                                <%= b.status.toUpperCase() %>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <tr>
+                                                                <td colspan="7" class="text-center text-muted py-3">No
+                                                                    booking requests recorded yet.</td>
+                                                            </tr>
+                                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>

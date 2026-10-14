@@ -1,0 +1,90 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+          <span class="badge bg-bd-emerald mb-2">Tour Agent Booking Request</span>
+          <h3 class="fw-bold mb-1">Request Tour Booking with <%= agent.agency_name %></h3>
+          <p class="text-muted small mb-4">
+            Lead Guide: <strong><%= agent.agent_name %></strong> &bull;
+            Max Group Capacity: <strong><%= agent.max_group_capacity %> travelers</strong> &bull;
+            Base Service Fee: <strong>৳<%= Number(agent.base_service_fee_bdt).toLocaleString() %></strong>
+          </p>
+
+          <% if (linkedPlan) { %>
+            <div class="alert alert-success small">
+              <i class="bi bi-link-45deg me-1"></i>
+              Linked to Saved Travel Plan: <strong><%= linkedPlan.plan_title %></strong>
+              (Estimated Trip Cost: <strong>৳<%= Number(linkedPlan.total_estimated_cost_bdt).toLocaleString() %></strong>)
+            </div>
+          <% } %>
+
+          <form action="/bookings" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <input type="hidden" name="agent_profile_id" value="<%= agent.id %>" />
+            <input type="hidden" name="travel_plan_id" value="<%= formData.travel_plan_id %>" />
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Destination *</label>
+                <select name="destination_id" class="form-select" required>
+                  <% const destPool = agentDestinations.length > 0 ? agentDestinations : allDestinations.map(d => ({ destination_id: d.id, destination_name: d.name })); %>
+                  <% destPool.forEach(d => { %>
+                    <option value="<%= d.destination_id %>" <%= String(formData.destination_id) === String(d.destination_id) ? 'selected' : '' %>>
+                      <%= d.destination_name %>
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Number of Travelers *</label>
+                <input
+                  type="number"
+                  name="travelers_count"
+                  class="form-control"
+                  min="1"
+                  max="<%= agent.max_group_capacity %>"
+                  value="<%= formData.travelers_count %>"
+                  required
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Departure Date *</label>
+                <input type="date" name="departure_date" class="form-control" value="<%= formData.departure_date %>" required />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Return Date *</label>
+                <input type="date" name="return_date" class="form-control" value="<%= formData.return_date %>" required />
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Special Requests / Pickup Instructions</label>
+                <textarea
+                  name="special_requests"
+                  class="form-control"
+                  rows="3"
+                  placeholder="Specify pickup location, preferred sightseeing schedule, or dietary needs..."
+                ></textarea>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-bd-emerald btn-lg w-100 fw-bold">
+                  <i class="bi bi-send-check-fill me-2"></i>Verify Date Availability & Submit Request
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

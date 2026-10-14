@@ -1,0 +1,252 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+            <div class="container-fluid container-xl py-4">
+                <div class="row g-4">
+                    <div class="col-lg-3">
+                        <%- include('../partials/adminSidebar') %>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <h3 class="fw-bold mb-3">Destinations & Tourist Attractions Management</h3>
+
+                        <!-- Add Destination Card -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold text-bd-emerald mb-3"><i class="bi bi-plus-circle me-2"></i>Add New
+                                    Bangladesh Destination</h5>
+                                <form action="/admin/destinations" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Destination Name *</label>
+                                            <input type="text" name="name" class="form-control form-control-sm"
+                                                placeholder="e.g., Cox's Bazar" required />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Division *</label>
+                                            <select name="division" class="form-select form-select-sm" required>
+                                                <option value="Chattogram">Chattogram</option>
+                                                <option value="Sylhet">Sylhet</option>
+                                                <option value="Khulna">Khulna</option>
+                                                <option value="Barishal">Barishal</option>
+                                                <option value="Dhaka">Dhaka</option>
+                                                <option value="Rajshahi">Rajshahi</option>
+                                                <option value="Rangpur">Rangpur</option>
+                                                <option value="Mymensingh">Mymensingh</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Landscape Type *</label>
+                                            <select name="landscape_type" class="form-select form-select-sm" required>
+                                                <option value="Beach">Beach</option>
+                                                <option value="Hill Tract">Hill Tract</option>
+                                                <option value="Mangrove Forest">Mangrove Forest</option>
+                                                <option value="Tea Garden & Haor">Tea Garden & Haor</option>
+                                                <option value="Heritage & Cultural">Heritage & Cultural</option>
+                                                <option value="Island">Island</option>
+                                                <option value="Urban">Urban</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Short Description *</label>
+                                            <input type="text" name="short_description"
+                                                class="form-control form-control-sm" required />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-semibold">Best Time to Visit</label>
+                                            <input type="text" name="best_time_to_visit"
+                                                class="form-control form-control-sm" value="November to March" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-semibold">Image URL</label>
+                                            <input type="text" name="image_url" class="form-control form-control-sm"
+                                                value="/images/default-destination.jpg" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Detailed Description *</label>
+                                            <textarea name="detailed_description" class="form-control form-control-sm"
+                                                rows="2" required></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Safety & Travel Notes</label>
+                                            <textarea name="travel_notes" class="form-control form-control-sm"
+                                                rows="2"></textarea>
+                                        </div>
+                                        <div class="col-12 d-flex justify-content-between align-items-center">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="is_featured"
+                                                    value="1" id="featCheck" checked />
+                                                <label class="form-check-label small" for="featCheck">Feature on Home
+                                                    Page</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-bd-emerald btn-sm px-4">Save
+                                                Destination</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Existing Destinations List -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold mb-0">Destinations Catalog (<%= destinations.length %>)</h5>
+                                    <form action="/admin/destinations" method="GET" class="d-flex gap-2">
+                                        <input type="text" name="search" class="form-control form-control-sm"
+                                            placeholder="Search destination..." value="<%= search %>" />
+                                        <button class="btn btn-outline-secondary btn-sm" type="submit">Filter</button>
+                                    </form>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle small">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Division</th>
+                                                <th>Landscape</th>
+                                                <th>Best Season</th>
+                                                <th>Featured</th>
+                                                <th>Updated</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% destinations.forEach(d=> { %>
+                                                <tr>
+                                                    <td>#<%= d.id %>
+                                                    </td>
+                                                    <td class="fw-bold">
+                                                        <%= d.name %>
+                                                    </td>
+                                                    <td>
+                                                        <%= d.division %>
+                                                    </td>
+                                                    <td><span class="badge bg-info-subtle text-info-emphasis">
+                                                            <%= d.landscape_type %>
+                                                        </span></td>
+                                                    <td>
+                                                        <%= d.best_time_to_visit %>
+                                                    </td>
+                                                    <td>
+                                                        <%= d.is_featured ? 'Yes' : 'No' %>
+                                                    </td>
+                                                    <td>
+                                                        <%= new Date(d.updated_at).toLocaleDateString() %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/admin/destinations/<%= d.id %>/delete"
+                                                            method="POST" class="d-inline"
+                                                            onsubmit="return confirm('Delete this destination?');">
+                                                            <input type="hidden" name="_csrf"
+                                                                value="<%= csrfToken %>" />
+                                                            <button
+                                                                class="btn btn-outline-danger btn-sm py-0 px-2">Delete</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tourist Attractions & Entrance Fees -->
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold text-bd-emerald mb-3">Tourist Attractions & Entrance Fees</h5>
+                                <form action="/admin/attractions" method="POST" class="row g-2 mb-4 align-items-end">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-semibold">Destination</label>
+                                        <select name="destination_id" class="form-select form-select-sm" required>
+                                            <% destinations.forEach(d=> { %>
+                                                <option value="<%= d.id %>">
+                                                    <%= d.name %>
+                                                </option>
+                                                <% }) %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-semibold">Attraction Name</label>
+                                        <input type="text" name="name" class="form-control form-control-sm"
+                                            placeholder="e.g., Himchari National Park" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-semibold">Entrance Fee (৳)</label>
+                                        <input type="number" name="entrance_fee_bdt"
+                                            class="form-control form-control-sm" min="0" value="50" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_verified" value="1"
+                                                id="attVer" />
+                                            <label class="form-check-label small" for="attVer">Verified Fee</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-bd-emerald btn-sm w-100">Add
+                                            Attraction</button>
+                                    </div>
+                                </form>
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover align-middle small mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Destination</th>
+                                                <th>Attraction Name</th>
+                                                <th>Entrance Fee (৳)</th>
+                                                <th>Price Label</th>
+                                                <th>Last Updated</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% attractions.forEach(a=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <%= a.destination_name %>
+                                                    </td>
+                                                    <td class="fw-semibold">
+                                                        <%= a.name %>
+                                                    </td>
+                                                    <td>৳<%= Number(a.entrance_fee_bdt).toLocaleString() %>
+                                                    </td>
+                                                    <td>
+                                                        <% if (a.is_verified) { %>
+                                                            <span
+                                                                class="badge bg-success-subtle text-success">Verified</span>
+                                                            <% } else { %>
+                                                                <span
+                                                                    class="badge bg-warning-subtle text-warning-emphasis">Estimated</span>
+                                                                <% } %>
+                                                    </td>
+                                                    <td>
+                                                        <%= new Date(a.last_updated_at).toLocaleDateString() %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/admin/attractions/<%= a.id %>/delete"
+                                                            method="POST" class="d-inline">
+                                                            <input type="hidden" name="_csrf"
+                                                                value="<%= csrfToken %>" />
+                                                            <button
+                                                                class="btn btn-link text-danger btn-sm p-0">Remove</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>

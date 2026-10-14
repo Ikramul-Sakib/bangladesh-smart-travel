@@ -1,0 +1,82 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">My Tour Agent Bookings & Status History</h2>
+      <p class="text-muted small mb-0">Track confirmations and review your tour guides</p>
+    </div>
+    <a href="/agents" class="btn btn-bd-emerald btn-sm">Find More Agents</a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle small mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Booking Ref</th>
+              <th>Destination</th>
+              <th>Tour Agency & Guide</th>
+              <th>Dates</th>
+              <th>Travelers</th>
+              <th>Agent Fee (৳)</th>
+              <th>Est. Total Trip (৳)</th>
+              <th>Status</th>
+              <th>Review</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (bookings && bookings.length > 0) { %>
+              <% bookings.forEach(b => { %>
+                <tr>
+                  <td><code><%= b.booking_reference %></code></td>
+                  <td class="fw-bold"><%= b.destination_name %></td>
+                  <td>
+                    <div class="fw-semibold"><%= b.agency_name %></div>
+                    <div class="text-muted"><%= b.agent_name %> (<%= b.agent_phone %>)</div>
+                  </td>
+                  <td><%= new Date(b.departure_date).toLocaleDateString() %> - <%= new Date(b.return_date).toLocaleDateString() %></td>
+                  <td><%= b.travelers_count %></td>
+                  <td class="fw-bold">৳<%= Number(b.agreed_agent_fee_bdt).toLocaleString() %></td>
+                  <td>৳<%= Number(b.estimated_trip_cost_bdt).toLocaleString() %></td>
+                  <td>
+                    <span class="badge bg-<%= b.status === 'confirmed' ? 'success' : (b.status === 'rejected' ? 'danger' : 'warning text-dark') %> text-uppercase">
+                      <%= b.status %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (['confirmed', 'completed'].includes(b.status) && !b.review_id) { %>
+                      <form action="/bookings/<%= b.id %>/review" method="POST" class="d-flex gap-1">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <select name="rating" class="form-select form-select-sm" style="width: 75px;">
+                          <option value="5">5 ★</option>
+                          <option value="4">4 ★</option>
+                          <option value="3">3 ★</option>
+                        </select>
+                        <input type="hidden" name="comment" value="Verified tour completed." />
+                        <button type="submit" class="btn btn-outline-success btn-sm">Rate</button>
+                      </form>
+                    <% } else if (b.review_id) { %>
+                      <span class="text-warning fw-bold"><%= b.review_rating %> ★</span>
+                    <% } else { %>
+                      <span class="text-muted">Awaiting Confirmation</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="9" class="text-center text-muted py-4">You have not submitted any tour agent booking requests yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,194 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <h3 class="fw-bold text-bd-emerald">Create Your Account</h3>
+                                    <p class="text-muted small">Join as a Tourist to plan budget trips or as a Tour
+                                        Agent to offer guided tours</p>
+                                </div>
+
+                                <% if (validationErrors && validationErrors.length> 0) { %>
+                                    <div class="alert alert-danger small">
+                                        <ul class="mb-0 ps-3">
+                                            <% validationErrors.forEach(err=> { %>
+                                                <li>
+                                                    <%= err %>
+                                                </li>
+                                                <% }) %>
+                                        </ul>
+                                    </div>
+                                    <% } %>
+
+                                        <form action="/auth/register" method="POST" id="registerForm">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+                                            <!-- Role Selector -->
+                                            <div class="mb-4">
+                                                <label class="form-label fw-bold small d-block">I am registering as
+                                                    a:</label>
+                                                <div class="btn-group w-100" role="group">
+                                                    <input type="radio" class="btn-check" name="role" id="roleTourist"
+                                                        value="tourist" <%=(!formData.role || formData.role==='tourist'
+                                                        ) ? 'checked' : '' %>
+                                                    />
+                                                    <label class="btn btn-outline-success py-2 fw-semibold"
+                                                        for="roleTourist">
+                                                        <i class="bi bi-backpack2 me-1"></i>Tourist / Traveler
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="role" id="roleAgent"
+                                                        value="agent" <%=formData.role==='agent' ? 'checked' : '' %>
+                                                    />
+                                                    <label class="btn btn-outline-success py-2 fw-semibold"
+                                                        for="roleAgent">
+                                                        <i class="bi bi-briefcase me-1"></i>Tour Agent / Guide
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Full Name *</label>
+                                                    <input type="text" name="full_name" class="form-control"
+                                                        placeholder="e.g., Tanvir Ahmed"
+                                                        value="<%= formData.full_name || '' %>" required />
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Mobile Phone (BD)
+                                                        *</label>
+                                                    <input type="text" name="phone" class="form-control"
+                                                        placeholder="017XXXXXXXX" value="<%= formData.phone || '' %>"
+                                                        required />
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <label class="form-label small fw-semibold">Email Address *</label>
+                                                    <input type="email" name="email" class="form-control"
+                                                        placeholder="name@example.com"
+                                                        value="<%= formData.email || '' %>" required />
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Password (Min 8 chars)
+                                                        *</label>
+                                                    <input type="password" name="password" class="form-control"
+                                                        minlength="8" required />
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-semibold">Confirm Password
+                                                        *</label>
+                                                    <input type="password" name="confirm_password" class="form-control"
+                                                        minlength="8" required />
+                                                </div>
+                                            </div>
+
+                                            <!-- Tour Agent Specific Section -->
+                                            <div id="agentFieldsContainer"
+                                                class="mt-4 pt-3 border-top <%= formData.role === 'agent' ? '' : 'd-none' %>">
+                                                <h6 class="fw-bold text-bd-emerald mb-3">
+                                                    <i class="bi bi-building-check me-1"></i>Tour Agent Profile Details
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Agency / Operator
+                                                            Name *</label>
+                                                        <input type="text" name="agency_name" class="form-control"
+                                                            placeholder="e.g., Bengal Eco Expeditions"
+                                                            value="<%= formData.agency_name || '' %>" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Trade / Tour License
+                                                            No. (Optional)</label>
+                                                        <input type="text" name="license_number" class="form-control"
+                                                            placeholder="e.g., BTB-2026-8841"
+                                                            value="<%= formData.license_number || '' %>" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Base Service Charge
+                                                            per Trip (৳ BDT) *</label>
+                                                        <input type="number" name="base_service_fee_bdt"
+                                                            class="form-control" min="0" step="100"
+                                                            value="<%= formData.base_service_fee_bdt || '2000' %>" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Maximum Group
+                                                            Capacity *</label>
+                                                        <input type="number" name="max_group_capacity"
+                                                            class="form-control" min="1" max="200"
+                                                            value="<%= formData.max_group_capacity || '12' %>" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Tour Types
+                                                            Supported</label>
+                                                        <input type="text" name="tour_types" class="form-control"
+                                                            value="<%= formData.tour_types || 'Family, Friends, Solo, Adventure' %>" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-semibold">Languages
+                                                            Spoken</label>
+                                                        <input type="text" name="languages_spoken" class="form-control"
+                                                            value="<%= formData.languages_spoken || 'Bengali, English' %>" />
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <label class="form-label small fw-semibold">Included
+                                                            Services</label>
+                                                        <input type="text" name="services_offered" class="form-control"
+                                                            value="<%= formData.services_offered || 'Tour Guide, Local Transport Arrangement, Hotel Check-in Support' %>" />
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <label class="form-label small fw-semibold">Short Bio &
+                                                            Experience</label>
+                                                        <textarea name="bio" class="form-control" rows="2"
+                                                            placeholder="Describe your guiding experience in Bangladesh..."><%= formData.bio || '' %></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4">
+                                                <button type="submit" class="btn btn-bd-emerald w-100 py-2 fw-semibold">
+                                                    <i class="bi bi-person-plus-fill me-1"></i>Complete Registration
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        <hr class="my-4" />
+                                        <div class="text-center small">
+                                            Already registered?
+                                            <a href="/auth/login"
+                                                class="fw-semibold text-bd-emerald text-decoration-none">Sign in
+                                                here</a>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const roleTourist = document.getElementById('roleTourist');
+                    const roleAgent = document.getElementById('roleAgent');
+                    const agentContainer = document.getElementById('agentFieldsContainer');
+
+                    function toggleAgentSection() {
+                        if (roleAgent.checked) {
+                            agentContainer.classList.remove('d-none');
+                        } else {
+                            agentContainer.classList.add('d-none');
+                        }
+                    }
+
+                    roleTourist.addEventListener('change', toggleAgentSection);
+                    roleAgent.addEventListener('change', toggleAgentSection);
+                });
+            </script>
+
+            <%- include('../partials/footer') %>

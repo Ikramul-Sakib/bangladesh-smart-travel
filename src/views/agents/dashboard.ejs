@@ -1,0 +1,200 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1"><%= agent.agency_name %> — Agent Dashboard</h2>
+      <p class="text-muted small mb-0">
+        Manage incoming booking requests, available dates, destinations served, and service fees
+      </p>
+    </div>
+    <a href="/agents/<%= agent.id %>" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-eye me-1"></i>View Public Profile
+    </a>
+  </div>
+
+  <!-- 1. Incoming Booking Requests -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-bold text-bd-emerald mb-3">
+        <i class="bi bi-inbox-fill me-2"></i>Tourist Booking Requests & Confirmed Tours
+      </h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle small mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Ref</th>
+              <th>Tourist</th>
+              <th>Destination</th>
+              <th>Travel Dates</th>
+              <th>Travelers</th>
+              <th>Agreed Fee</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (bookings && bookings.length > 0) { %>
+              <% bookings.forEach(b => { %>
+                <tr>
+                  <td><code><%= b.booking_reference %></code></td>
+                  <td>
+                    <div class="fw-bold"><%= b.tourist_name %></div>
+                    <div class="text-muted"><%= b.tourist_phone %></div>
+                  </td>
+                  <td class="fw-semibold"><%= b.destination_name %></td>
+                  <td><%= new Date(b.departure_date).toLocaleDateString() %> - <%= new Date(b.return_date).toLocaleDateString() %></td>
+                  <td><%= b.travelers_count %> pax</td>
+                  <td class="fw-bold text-bd-emerald">৳<%= Number(b.agreed_agent_fee_bdt).toLocaleString() %></td>
+                  <td>
+                    <span class="badge bg-<%= b.status === 'confirmed' ? 'success' : (b.status === 'rejected' ? 'danger' : 'warning text-dark') %> text-uppercase">
+                      <%= b.status %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if (b.status === 'pending') { %>
+                      <div class="d-flex gap-1">
+                        <form action="/bookings/<%= b.id %>/status" method="POST">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                          <input type="hidden" name="status" value="confirmed" />
+                          <button type="submit" class="btn btn-success btn-sm py-0 px-2">Accept</button>
+                        </form>
+                        <form action="/bookings/<%= b.id %>/status" method="POST">
+                          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                          <input type="hidden" name="status" value="rejected" />
+                          <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2">Reject</button>
+                        </form>
+                      </div>
+                    <% } else if (b.status === 'confirmed') { %>
+                      <form action="/bookings/<%= b.id %>/status" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <input type="hidden" name="status" value="completed" />
+                        <button type="submit" class="btn btn-outline-primary btn-sm py-0 px-2">Mark Completed</button>
+                      </form>
+                    <% } else { %>
+                      <span class="text-muted">—</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="8" class="text-center text-muted py-3">No booking requests received yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- 2. Manage Available / Unavailable Dates -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-bd-emerald mb-3">
+            <i class="bi bi-calendar-range me-2"></i>Set Available / Unavailable Dates
+          </h5>
+          <form action="/agent/availabilities" method="POST" class="row g-2 mb-3">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Start Date</label>
+              <input type="date" name="start_date" class="form-control form-control-sm" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">End Date</label>
+              <input type="date" name="end_date" class="form-control form-control-sm" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Status</label>
+              <select name="status" class="form-select form-select-sm">
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <input type="text" name="notes" class="form-control form-control-sm" placeholder="Optional note (e.g., Peak Winter Window)" />
+            </div>
+            <div class="col-md-4">
+              <button type="submit" class="btn btn-bd-emerald btn-sm w-100">Add Window</button>
+            </div>
+          </form>
+
+          <div class="table-responsive">
+            <table class="table table-sm align-middle small mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Dates</th>
+                  <th>Status</th>
+                  <th>Note</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% availabilities.forEach(a => { %>
+                  <tr>
+                    <td><%= new Date(a.start_date).toLocaleDateString() %> - <%= new Date(a.end_date).toLocaleDateString() %></td>
+                    <td><span class="badge bg-<%= a.status === 'available' ? 'success' : 'danger' %>"><%= a.status %></span></td>
+                    <td><%= a.notes || '—' %></td>
+                    <td>
+                      <form action="/agent/availabilities/<%= a.id %>/delete" method="POST" class="d-inline">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                        <button class="btn btn-link text-danger btn-sm p-0">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Manage Destinations Served -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-bd-emerald mb-3">
+            <i class="bi bi-pin-map-fill me-2"></i>Destinations Served & Custom Fees
+          </h5>
+          <form action="/agent/destinations" method="POST" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <div class="col-md-5">
+              <label class="form-label small fw-semibold">Destination</label>
+              <select name="destination_id" class="form-select form-select-sm" required>
+                <% allDestinations.forEach(d => { %>
+                  <option value="<%= d.id %>"><%= d.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Service Fee (৳ BDT)</label>
+              <input type="number" name="custom_service_fee_bdt" class="form-control form-control-sm" placeholder="Default: ৳<%= agent.base_service_fee_bdt %>" />
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-bd-emerald btn-sm w-100">Save</button>
+            </div>
+          </form>
+
+          <ul class="list-group list-group-flush small">
+            <% destinations.forEach(d => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span><strong><%= d.destination_name %></strong> — ৳<%= Number(d.custom_service_fee_bdt || agent.base_service_fee_bdt).toLocaleString() %></span>
+                <form action="/agent/destinations/<%= d.id %>/delete" method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                  <button class="btn btn-link text-danger btn-sm p-0">Remove</button>
+                </form>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

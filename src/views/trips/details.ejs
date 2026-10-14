@@ -1,0 +1,190 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <span class="badge bg-secondary mb-1">Itinerary ID #<%= plan.id %> &bull; Manual Price Estimation Report</span>
+      <h2 class="fw-bold mb-1"><%= plan.plan_title %></h2>
+      <p class="text-muted small mb-0">
+        Route: <strong><%= plan.starting_location %> &rarr; <%= plan.destination_name %></strong> &bull;
+        Dates: <strong><%= new Date(plan.departure_date).toLocaleDateString() %> - <%= new Date(plan.return_date).toLocaleDateString() %></strong>
+        (<%= plan.duration_days %> Days, <%= plan.hotel_nights %> Nights) &bull;
+        Travelers: <strong><%= plan.total_travelers %></strong>
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-printer me-1"></i>Print Report
+      </button>
+      <a
+        href="/agents?destination_id=<%= plan.destination_id %>&departure_date=<%= new Date(plan.departure_date).toISOString().split('T')[0] %>&return_date=<%= new Date(plan.return_date).toISOString().split('T')[0] %>&travelers_count=<%= plan.total_travelers %>&travel_plan_id=<%= plan.id %>"
+        class="btn btn-warning btn-sm fw-bold text-dark"
+      >
+        <i class="bi bi-person-check-fill me-1"></i>Book Available Tour Agent for This Trip
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary KPI Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="small text-muted">Your Total Budget</div>
+        <h3 class="fw-bold my-1">৳<%= Number(plan.total_budget_bdt).toLocaleString() %></h3>
+        <div class="small text-secondary">Group Type: <span class="text-capitalize"><%= plan.group_type %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="small text-muted">Total Estimated Cost</div>
+        <h3 class="fw-bold text-bd-emerald my-1">৳<%= Number(plan.total_estimated_cost_bdt).toLocaleString() %></h3>
+        <div class="small text-secondary">7-Component Backend Formula</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="small text-muted">Cost Per Traveler</div>
+        <h3 class="fw-bold text-primary my-1">৳<%= Number(plan.cost_per_traveler_bdt).toLocaleString() %></h3>
+        <div class="small text-secondary"><%= plan.adults_count %> Adults, <%= plan.children_count %> Children</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="small text-muted"><%= plan.fits_budget ? 'Remaining Budget Surplus' : 'Budget Deficit' %></div>
+        <h3 class="fw-bold text-<%= plan.fits_budget ? 'success' : 'danger' %> my-1">
+          <%= plan.fits_budget ? '+' : '-' %>৳<%= Math.abs(Number(plan.budget_difference_bdt)).toLocaleString() %>
+        </h3>
+        <div class="small text-secondary">
+          Status: <strong><%= plan.fits_budget ? 'Fits Within Budget' : 'Exceeds Budget' %></strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Detailed Line-Item Table -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Line-by-Line Travel Cost Calculation Report</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>Component</th>
+                  <th>Description</th>
+                  <th>Calculation Formula</th>
+                  <th>Verification</th>
+                  <th class="text-end">Subtotal (৳)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% items.forEach(item => { %>
+                  <tr>
+                    <td><span class="badge bg-secondary text-uppercase"><%= item.cost_component.replace('_', ' ') %></span></td>
+                    <td class="fw-semibold"><%= item.item_title %></td>
+                    <td class="text-muted"><code><%= item.calculation_formula %></code></td>
+                    <td>
+                      <% if (item.is_verified_price) { %>
+                        <span class="badge bg-success-subtle text-success">Verified</span>
+                      <% } else { %>
+                        <span class="badge bg-warning-subtle text-warning-emphasis">Estimated</span>
+                      <% } %>
+                    </td>
+                    <td class="text-end fw-bold">৳<%= Number(item.subtotal_bdt).toLocaleString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+              <tfoot class="table-light fw-bold">
+                <tr>
+                  <td colspan="4" class="text-end">Total Estimated Trip Cost:</td>
+                  <td class="text-end text-bd-emerald fs-6">৳<%= Number(plan.total_estimated_cost_bdt).toLocaleString() %></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js Expense Distribution Doughnut -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3">Expense Share by Category</h5>
+          <div style="height: 260px;">
+            <canvas 
+              id="expenseDoughnutChart"
+              data-expenses="<%= JSON.stringify([
+                Number(plan.transportation_cost_bdt || 0),
+                Number(plan.accommodation_cost_bdt || 0),
+                Number(plan.food_cost_bdt || 0),
+                Number(plan.local_transport_cost_bdt || 0),
+                Number(plan.activity_cost_bdt || 0),
+                Number(plan.agent_fee_bdt || 0),
+                Number(plan.misc_cost_bdt || 0)
+              ]) %>"
+            ></canvas>
+          </div>
+          <hr />
+          <div class="small text-muted">
+            <i class="bi bi-shield-check text-bd-emerald me-1"></i>
+            Formula: <code>Transport + Hotel + Food + Local Transport + Activities + Agent Fee + Misc</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('expenseDoughnutChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    let chartData = [0, 0, 0, 0, 0, 0, 0];
+    try {
+      chartData = JSON.parse(ctx.dataset.expenses || '[]');
+    } catch (e) {
+      console.error('Failed to parse expense chart data', e);
+    }
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          'Transportation',
+          'Hotel Accommodation',
+          'Food & Meals',
+          'Local Transport',
+          'Activities & Attractions',
+          'Tour Agent Fee',
+          'Miscellaneous'
+        ],
+        datasets: [{
+          data: chartData,
+          backgroundColor: [
+            '#0a5c36',
+            '#0d7377',
+            '#f59e0b',
+            '#3b82f6',
+            '#8b5cf6',
+            '#10b981',
+            '#64748b'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

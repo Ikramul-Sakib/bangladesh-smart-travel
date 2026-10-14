@@ -1,0 +1,105 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="hero-banner text-white p-4 p-md-5">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <span class="badge bg-warning text-dark mb-2"><%= destination.landscape_type %> &bull; <%= destination.division %> Division</span>
+          <h1 class="fw-bold mb-2"><%= destination.name %></h1>
+          <p class="lead mb-0 opacity-90"><%= destination.short_description %></p>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <a href="/trips/plan?destination_id=<%= destination.id %>" class="btn btn-warning fw-bold text-dark px-4">
+            <i class="bi bi-calculator me-1"></i>Calculate My Budget for <%= destination.name %>
+          </a>
+          <a href="/agents?destination_id=<%= destination.id %>" class="btn btn-outline-light">
+            <i class="bi bi-people me-1"></i>Find Tour Agents for <%= destination.name %>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-4">
+      <h5 class="fw-bold text-bd-emerald">Overview & Travel Notes</h5>
+      <p class="text-secondary"><%= destination.detailed_description %></p>
+      <% if (destination.travel_notes) { %>
+        <div class="alert alert-info small mb-0">
+          <i class="bi bi-info-circle-fill me-2"></i><strong>Traveler Note:</strong> <%= destination.travel_notes %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Top Attractions -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-camera me-2 text-bd-emerald"></i>Key Tourist Attractions</h5>
+          <ul class="list-group list-group-flush small">
+            <% attractions.forEach(a => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <div>
+                  <div class="fw-semibold"><%= a.name %></div>
+                  <div class="text-muted"><%= a.category %></div>
+                </div>
+                <div class="text-end">
+                  <span class="fw-bold">৳<%= Number(a.entrance_fee_bdt).toLocaleString() %></span>
+                  <span class="d-block badge bg-light text-secondary border"><%= a.is_verified ? 'Verified' : 'Estimate' %></span>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transport & Hotel Sample Fares -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-bus-front me-2 text-bd-emerald"></i>Estimated Transport Fares</h5>
+          <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle small">
+              <thead class="table-light">
+                <tr>
+                  <th>From</th>
+                  <th>Mode</th>
+                  <th>Operator</th>
+                  <th>One-Way (৳)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% transports.forEach(t => { %>
+                  <tr>
+                    <td><%= t.departure_location %></td>
+                    <td><span class="badge bg-secondary text-uppercase"><%= t.transport_type %></span></td>
+                    <td><%= t.operator_name %></td>
+                    <td class="fw-bold">৳<%= Number(t.one_way_fare_bdt).toLocaleString() %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <h5 class="fw-bold mb-2"><i class="bi bi-building me-2 text-bd-emerald"></i>Available Hotels</h5>
+          <ul class="list-group list-group-flush small">
+            <% hotels.forEach(h => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <div>
+                  <span class="fw-semibold"><%= h.name %></span>
+                  <span class="badge bg-info-subtle text-info-emphasis ms-1 text-uppercase"><%= h.category %></span>
+                </div>
+                <span class="fw-bold text-bd-emerald">From ৳<%= Number(h.min_room_price_bdt || 0).toLocaleString() %>/night</span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

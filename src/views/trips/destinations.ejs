@@ -1,0 +1,85 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Explore Destinations Across Bangladesh</h2>
+      <p class="text-muted small mb-0">
+        Browse beaches, hill tracts, mangrove forests, haors, and UNESCO heritage sites
+      </p>
+    </div>
+    <a href="/trips/plan" class="btn btn-bd-emerald">
+      <i class="bi bi-calculator me-1"></i>Open Budget Planner
+    </a>
+  </div>
+
+  <!-- Search & Landscape Filter Bar -->
+  <form action="/destinations" method="GET" class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <input
+          type="text"
+          name="search"
+          class="form-control"
+          placeholder="Search Cox's Bazar, Sajek, Sundarbans, Sylhet..."
+          value="<%= filters.search %>"
+        />
+      </div>
+      <div class="col-md-4">
+        <select name="landscape" class="form-select">
+          <option value="">All Landscape Categories</option>
+          <option value="Beach" <%= filters.landscape === 'Beach' ? 'selected' : '' %>>Beach</option>
+          <option value="Hill Tract" <%= filters.landscape === 'Hill Tract' ? 'selected' : '' %>>Hill Tract</option>
+          <option value="Mangrove Forest" <%= filters.landscape === 'Mangrove Forest' ? 'selected' : '' %>>Mangrove Forest</option>
+          <option value="Tea Garden & Haor" <%= filters.landscape === 'Tea Garden & Haor' ? 'selected' : '' %>>Tea Garden & Haor</option>
+          <option value="Heritage & Cultural" <%= filters.landscape === 'Heritage & Cultural' ? 'selected' : '' %>>Heritage & Cultural</option>
+          <option value="Island" <%= filters.landscape === 'Island' ? 'selected' : '' %>>Island</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-bd-emerald w-100">Filter</button>
+        <a href="/destinations" class="btn btn-outline-secondary">Reset</a>
+      </div>
+    </div>
+  </form>
+
+  <!-- Destination Cards Grid -->
+  <div class="row g-4">
+    <% if (destinations && destinations.length > 0) { %>
+      <% destinations.forEach(dest => { %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="bg-bd-emerald text-white p-3 d-flex justify-content-between align-items-center">
+              <span class="badge bg-warning text-dark"><%= dest.landscape_type %></span>
+              <span class="small opacity-75"><i class="bi bi-pin-map me-1"></i><%= dest.division %> Division</span>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <h4 class="fw-bold mb-2"><%= dest.name %></h4>
+              <p class="text-muted small mb-3"><%= dest.short_description %></p>
+              <div class="small text-secondary mb-3 mt-auto">
+                <i class="bi bi-calendar-range text-bd-emerald me-1"></i>
+                <strong>Best Season:</strong> <%= dest.best_time_to_visit %>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/destinations/<%= dest.slug %>" class="btn btn-outline-success btn-sm w-50">
+                  Cost Guide
+                </a>
+                <a href="/trips/plan?destination_id=<%= dest.id %>" class="btn btn-bd-emerald btn-sm w-50">
+                  Plan Trip &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="col-12 text-center py-5">
+        <p class="text-muted">No destinations found. Seed the database or add destinations in the Admin Panel.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

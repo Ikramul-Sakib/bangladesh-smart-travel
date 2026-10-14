@@ -1,0 +1,171 @@
+<%- include('partials/head') %>
+    <%- include('partials/navbar') %>
+        <%- include('partials/flash') %>
+
+            <!-- Hero Section -->
+            <section class="hero-banner text-white py-5">
+                <div class="container py-4">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-7">
+                            <span class="badge bg-warning text-dark fw-semibold mb-3 px-3 py-2">
+                                <i class="bi bi-stars me-1"></i>Smart Rule-Based Budget Engine (BDT ৳)
+                            </span>
+                            <h1 class="display-5 fw-bold mb-3">
+                                Plan Your Bangladesh Trip Inside Your Exact Budget
+                            </h1>
+                            <p class="lead opacity-90 mb-4">
+                                Calculate real-world bus, train, hotel, food, and local transport expenses from Dhaka or
+                                anywhere in Bangladesh—and book tour agents verified to be free on your exact travel
+                                dates.
+                            </p>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a href="/trips/plan" class="btn btn-warning btn-lg fw-bold text-dark px-4">
+                                    <i class="bi bi-calculator-fill me-2"></i>Build My Travel Plan
+                                </a>
+                                <a href="/agents" class="btn btn-outline-light btn-lg px-4">
+                                    <i class="bi bi-person-check-fill me-2"></i>Find Available Tour Agents
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Quick Trip Estimator Card -->
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-lg text-dark rounded-4">
+                                <div class="card-body p-4">
+                                    <h5 class="fw-bold mb-3 text-bd-emerald">
+                                        <i class="bi bi-search-heart me-2"></i>Quick Trip Planner
+                                    </h5>
+                                    <form action="/trips/plan" method="GET" id="quickSearchForm">
+                                        <div class="row g-3">
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Starting City</label>
+                                                <select name="starting_location" class="form-select" required>
+                                                    <option value="Dhaka" selected>Dhaka</option>
+                                                    <option value="Chattogram">Chattogram</option>
+                                                    <option value="Sylhet">Sylhet</option>
+                                                    <option value="Rajshahi">Rajshahi</option>
+                                                    <option value="Khulna">Khulna</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Destination</label>
+                                                <select name="destination_id" class="form-select" required>
+                                                    <% if (destinations && destinations.length> 0) { %>
+                                                        <% destinations.forEach(dest=> { %>
+                                                            <option value="<%= dest.id %>">
+                                                                <%= dest.name %> (<%= dest.division %>)
+                                                            </option>
+                                                            <% }) %>
+                                                                <% } else { %>
+                                                                    <option value="">Cox's Bazar (Seed DB to load all
+                                                                        13)</option>
+                                                                    <% } %>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Departure Date</label>
+                                                <input type="date" name="departure_date" id="quickDepartureDate"
+                                                    class="form-control" required />
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Return Date</label>
+                                                <input type="date" name="return_date" id="quickReturnDate"
+                                                    class="form-control" required />
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Travelers</label>
+                                                <input type="number" name="adults_count" class="form-control" min="1"
+                                                    max="50" value="4" required />
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label small fw-semibold">Total Budget (৳ BDT)</label>
+                                                <input type="number" name="total_budget_bdt" class="form-control"
+                                                    min="1000" step="500" value="20000" required />
+                                            </div>
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-bd-emerald w-100 py-2 fw-semibold">
+                                                    Calculate & Compare Plans <i class="bi bi-arrow-right ms-1"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Status Banner if DB is not initialized yet -->
+            <% if (!dbConnected) { %>
+                <div class="container mt-4">
+                    <div class="alert alert-warning border-warning shadow-sm mb-0">
+                        <i class="bi bi-database-exclamation me-2"></i>
+                        <strong>Database Connection Notice:</strong> Make sure MySQL is running and execute
+                        <code>database/schema.sql</code> to load the 18 normalized tables.
+                    </div>
+                </div>
+                <% } %>
+
+                    <!-- Core Features Section -->
+                    <section class="py-5">
+                        <div class="container">
+                            <div class="text-center mb-5">
+                                <h2 class="fw-bold">How the Smart Travel Planner Works</h2>
+                                <p class="text-muted">Transparent rule-based calculations with zero hidden fees</p>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-3">
+                                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
+                                        <div class="feature-icon bg-success-subtle text-success mx-auto mb-3">
+                                            <i class="bi bi-sliders fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold">1. Set Your Budget</h5>
+                                        <p class="small text-muted mb-0">
+                                            Enter starting city, destination, dates, group size, transport mode, and
+                                            total BDT budget.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
+                                        <div class="feature-icon bg-primary-subtle text-primary mx-auto mb-3">
+                                            <i class="bi bi-receipt-cutoff fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold">2. Exact Cost Breakdown</h5>
+                                        <p class="small text-muted mb-0">
+                                            Combines bus/train fares, hotel room counts, daily meals, local transport,
+                                            and attraction fees.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
+                                        <div class="feature-icon bg-warning-subtle text-warning-emphasis mx-auto mb-3">
+                                            <i class="bi bi-bar-chart-steps fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold">3. Compare Alternatives</h5>
+                                        <p class="small text-muted mb-0">
+                                            Ranks Budget, Standard, and Premium itineraries and highlights exact budget
+                                            surplus or deficit.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
+                                        <div class="feature-icon bg-info-subtle text-info-emphasis mx-auto mb-3">
+                                            <i class="bi bi-calendar2-check fs-3"></i>
+                                        </div>
+                                        <h5 class="fw-bold">4. Book Available Agents</h5>
+                                        <p class="small text-muted mb-0">
+                                            Filters tour agents by destination, group capacity, and conflict-free date
+                                            availability.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <%- include('partials/footer') %>

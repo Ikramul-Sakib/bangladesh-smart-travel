@@ -1,0 +1,156 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+            <div class="container-fluid container-xl py-4">
+                <div class="row g-4">
+                    <div class="col-lg-3">
+                        <%- include('../partials/adminSidebar') %>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <h3 class="fw-bold mb-3">Hotel & Room Price Management</h3>
+
+                        <!-- Create Hotel + Initial Room Form -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold text-bd-emerald mb-3">Add Hotel & Room Category</h5>
+                                <form action="/admin/hotels" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Hotel Name *</label>
+                                            <input type="text" name="name" class="form-control form-control-sm"
+                                                placeholder="e.g., Hotel Sea Crown" required />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Destination *</label>
+                                            <select name="destination_id" class="form-select form-select-sm" required>
+                                                <% destinations.forEach(d=> { %>
+                                                    <option value="<%= d.id %>">
+                                                        <%= d.name %>
+                                                    </option>
+                                                    <% }) %>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Accommodation Category *</label>
+                                            <select name="category" class="form-select form-select-sm">
+                                                <option value="budget">Budget</option>
+                                                <option value="standard" selected>Standard</option>
+                                                <option value="premium">Premium / Resort</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Address / Location *</label>
+                                            <input type="text" name="address" class="form-control form-control-sm"
+                                                placeholder="Kolatoli Beach Road" required />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-semibold">Facilities</label>
+                                            <input type="text" name="facilities" class="form-control form-control-sm"
+                                                value="Wi-Fi, AC, Complimentary Breakfast, Generator" />
+                                        </div>
+
+                                        <!-- Initial Room Type -->
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-semibold">Room Type Name *</label>
+                                            <input type="text" name="room_type_name"
+                                                class="form-control form-control-sm" value="Deluxe Couple / Twin"
+                                                required />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-semibold">Price / Night (৳ BDT) *</label>
+                                            <input type="number" name="price_per_night_bdt"
+                                                class="form-control form-control-sm" min="300" value="2500" required />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small fw-semibold">Max Guests</label>
+                                            <input type="number" name="max_guests_per_room"
+                                                class="form-control form-control-sm" min="1" max="10" value="2"
+                                                required />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small fw-semibold">Available Rooms</label>
+                                            <input type="number" name="available_rooms_count"
+                                                class="form-control form-control-sm" min="1" value="10" />
+                                        </div>
+
+                                        <div class="col-12 d-flex justify-content-between align-items-center">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="is_verified"
+                                                    value="1" id="verHotel" />
+                                                <label class="form-check-label small" for="verHotel">Verified Rate
+                                                    (uncheck for Manual Estimate)</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-bd-emerald btn-sm px-4">Save Hotel &
+                                                Room</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Room Rates Table -->
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3">Configured Hotels & Nightly Room Rates</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle small mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Destination</th>
+                                                <th>Hotel Name</th>
+                                                <th>Room Type</th>
+                                                <th>Price / Night (৳)</th>
+                                                <th>Max Guests / Room</th>
+                                                <th>Inventory</th>
+                                                <th>Last Updated</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% roomTypes.forEach(rt=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <%= rt.destination_name %>
+                                                    </td>
+                                                    <td class="fw-semibold">
+                                                        <%= rt.hotel_name %>
+                                                    </td>
+                                                    <td>
+                                                        <%= rt.room_type_name %>
+                                                    </td>
+                                                    <td class="fw-bold text-bd-emerald">৳<%=
+                                                            Number(rt.price_per_night_bdt).toLocaleString() %>
+                                                    </td>
+                                                    <td>
+                                                        <%= rt.max_guests_per_room %> guests
+                                                    </td>
+                                                    <td>
+                                                        <%= rt.available_rooms_count %> rooms
+                                                    </td>
+                                                    <td>
+                                                        <%= new Date(rt.last_updated_at).toLocaleDateString() %>
+                                                    </td>
+                                                    <td>
+                                                        <form action="/admin/rooms/<%= rt.id %>/delete" method="POST"
+                                                            class="d-inline">
+                                                            <input type="hidden" name="_csrf"
+                                                                value="<%= csrfToken %>" />
+                                                            <button
+                                                                class="btn btn-outline-danger btn-sm py-0 px-2">Delete</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>

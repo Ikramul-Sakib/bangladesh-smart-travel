@@ -1,0 +1,223 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <!-- Header Summary -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <span class="badge bg-bd-emerald mb-1">Rule-Based Budget Recommendation Engine</span>
+      <h2 class="fw-bold mb-1">
+        <%= searchParams.starting_location %> &rarr; <%= destination.name %>
+      </h2>
+      <p class="text-muted small mb-0">
+        <strong>Dates:</strong> <%= searchParams.departure_date %> to <%= searchParams.return_date %>
+        (<%= recommendations[0].breakdown.duration_days %> Days / <%= recommendations[0].breakdown.hotel_nights %> Nights) &bull;
+        <strong>Travelers:</strong> <%= searchParams.total_travelers %> (<%= searchParams.adults_count %> Adults, <%= searchParams.children_count %> Children) &bull;
+        <strong>Your Total Budget:</strong> <span class="fw-bold text-bd-emerald">৳<%= Number(searchParams.total_budget_bdt).toLocaleString() %></span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <a href="/trips/plan?destination_id=<%= destination.id %>&starting_location=<%= encodeURIComponent(searchParams.starting_location) %>&departure_date=<%= searchParams.departure_date %>&return_date=<%= searchParams.return_date %>&adults_count=<%= searchParams.adults_count %>&total_budget_bdt=<%= searchParams.total_budget_bdt %>" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-sliders me-1"></i>Modify Inputs
+      </a>
+      <a href="/agents?destination_id=<%= destination.id %>&departure_date=<%= searchParams.departure_date %>&return_date=<%= searchParams.return_date %>&travelers_count=<%= searchParams.total_travelers %>" class="btn btn-warning btn-sm fw-semibold text-dark">
+        <i class="bi bi-person-check me-1"></i>Find Available Tour Agents
+      </a>
+    </div>
+  </div>
+
+  <!-- Budget Deficit Alert if NO plan fits budget -->
+  <% if (!anyFitsBudget && leastExpensivePlan) { %>
+    <div class="alert alert-warning border-warning shadow-sm rounded-4 p-4 mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+        <div>
+          <h5 class="fw-bold mb-1">Budget Deficit Notice: No Option Fits Within ৳<%= Number(searchParams.total_budget_bdt).toLocaleString() %></h5>
+          <p class="small mb-0">
+            The least expensive itinerary for <strong><%= searchParams.total_travelers %> travelers</strong> over <strong><%= leastExpensivePlan.breakdown.duration_days %> days</strong> costs
+            <strong>৳<%= leastExpensivePlan.breakdown.total_estimated_cost_bdt.toLocaleString() %></strong>, resulting in a minimum budget deficit of
+            <strong class="text-danger">৳<%= leastExpensivePlan.breakdown.budget_deficit_bdt.toLocaleString() %></strong>.
+            Below are the most economical alternatives ranked by lowest deficit.
+          </p>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Side-by-Side Recommended Plans -->
+  <div class="row g-4 mb-5">
+    <% recommendations.forEach((rec, index) => { %>
+      <% const b = rec.breakdown; %>
+      <% const pct = Math.min(100, Math.round((b.total_estimated_cost_bdt / b.total_budget_bdt) * 100)); %>
+      <div class="col-lg-4">
+        <div class="card h-100 border-<%= b.fits_budget ? 'success' : 'warning' %> shadow-sm rounded-4">
+          <div class="card-header bg-<%= b.fits_budget ? 'success' : 'warning' %> text-<%= b.fits_budget ? 'white' : 'dark' %> py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-bold small text-uppercase"><i class="bi bi-award me-1"></i><%= rec.badge %></span>
+            <% if (b.fits_budget) { %>
+              <span class="badge bg-white text-success fw-bold">Within Budget ✓</span>
+            <% } else { %>
+              <span class="badge bg-danger text-white">Deficit: ৳<%= b.budget_deficit_bdt.toLocaleString() %></span>
+            <% } %>
+          </div>
+
+          <div class="card-body p-4 d-flex flex-column">
+            <h5 class="fw-bold mb-1"><%= rec.plan_title %></h5>
+            <p class="text-muted small mb-3">
+              Mode: <strong class="text-uppercase"><%= rec.preferred_transport %></strong> &bull;
+              Hotel: <strong class="text-capitalize"><%= rec.accommodation_category %></strong> (<%= b.rooms_required %> room<%= b.rooms_required !== 1 ? 's' : '' %>) &bull;
+              Meals: <strong class="text-capitalize"><%= rec.food_preference %></strong>
+            </p>
+
+            <!-- Price Box -->
+            <div class="bg-light p-3 rounded-3 mb-3 text-center border">
+              <div class="small text-muted">Total Estimated Cost</div>
+              <div class="display-6 fw-bold text-bd-emerald">৳<%= b.total_estimated_cost_bdt.toLocaleString() %></div>
+              <div class="small text-secondary">
+                <strong>৳<%= b.cost_per_traveler_bdt.toLocaleString() %></strong> per traveler
+              </div>
+            </div>
+
+            <!-- Budget Progress Bar -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between small mb-1">
+                <span>Budget Usage (<%= pct %>%)</span>
+                <% if (b.fits_budget) { %>
+                  <span class="text-success fw-semibold">Remaining: ৳<%= b.remaining_budget_bdt.toLocaleString() %></span>
+                <% } else { %>
+                  <span class="text-danger fw-semibold">Shortfall: -৳<%= b.budget_deficit_bdt.toLocaleString() %></span>
+                <% } %>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div
+                  class="progress-bar bg-<%= b.fits_budget ? 'success' : 'danger' %>"
+                  role="progressbar"
+                  aria-valuenow="<%= pct %>"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  data-width="<%= pct %>%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- 7-Component Breakdown Table -->
+            <table class="table table-sm small mb-4">
+              <tbody>
+                <tr>
+                  <td>1. Transportation (<%= rec.transportOption ? rec.transportOption.operator_name : 'N/A' %>)</td>
+                  <td class="text-end fw-semibold">৳<%= b.transportation_cost_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>2. Hotel (<%= rec.hotelRoom ? rec.hotelRoom.hotel_name : 'Day Trip' %>)</td>
+                  <td class="text-end fw-semibold">৳<%= b.accommodation_cost_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>3. Food (<%= b.duration_days %> days × <%= searchParams.total_travelers %> pax)</td>
+                  <td class="text-end fw-semibold">৳<%= b.food_cost_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>4. Local Transport</td>
+                  <td class="text-end fw-semibold">৳<%= b.local_transport_cost_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>5. Activities & Entry Fees</td>
+                  <td class="text-end fw-semibold">৳<%= b.activity_cost_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>6. Tour Agent / Guide Fee</td>
+                  <td class="text-end fw-semibold">৳<%= b.agent_fee_bdt.toLocaleString() %></td>
+                </tr>
+                <tr>
+                  <td>7. Miscellaneous Expenses</td>
+                  <td class="text-end fw-semibold">৳<%= b.misc_cost_bdt.toLocaleString() %></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Save & View Detailed Breakdown Form -->
+            <form action="/trips/save" method="POST" class="mt-auto">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+              <input type="hidden" name="selected_plan_key" value="<%= rec.key %>" />
+              <input type="hidden" name="starting_location" value="<%= searchParams.starting_location %>" />
+              <input type="hidden" name="destination_id" value="<%= searchParams.destination_id %>" />
+              <input type="hidden" name="departure_date" value="<%= searchParams.departure_date %>" />
+              <input type="hidden" name="return_date" value="<%= searchParams.return_date %>" />
+              <input type="hidden" name="adults_count" value="<%= searchParams.adults_count %>" />
+              <input type="hidden" name="children_count" value="<%= searchParams.children_count %>" />
+              <input type="hidden" name="total_budget_bdt" value="<%= searchParams.total_budget_bdt %>" />
+              <input type="hidden" name="preferred_transport" value="<%= rec.preferred_transport %>" />
+              <input type="hidden" name="accommodation_category" value="<%= rec.accommodation_category %>" />
+              <input type="hidden" name="food_preference" value="<%= rec.food_preference %>" />
+              <input type="hidden" name="group_type" value="<%= searchParams.group_type %>" />
+              <input type="hidden" name="requires_guide" value="<%= searchParams.requires_guide ? '1' : '0' %>" />
+              <input type="hidden" name="attraction_ids" value="<%= searchParams.attraction_ids.join(',') %>" />
+              <input type="hidden" name="additional_requirements" value="<%= searchParams.additional_requirements %>" />
+
+              <button type="submit" class="btn btn-bd-emerald w-100 fw-semibold">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Select & View Full Expense Report
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Visual Expense Comparison Chart -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-line me-2 text-bd-emerald"></i>Visual Itinerary Cost Comparison (BDT ৳)</h5>
+    <div style="max-height: 340px;">
+      <canvas 
+        id="comparisonChart"
+        data-plans="<%= JSON.stringify(recommendations.map(r => ({
+          title: r.plan_title,
+          transport: r.breakdown.transportation_cost_bdt,
+          hotel: r.breakdown.accommodation_cost_bdt,
+          food: r.breakdown.food_cost_bdt,
+          localAndAct: r.breakdown.local_transport_cost_bdt + r.breakdown.activity_cost_bdt + r.breakdown.agent_fee_bdt + r.breakdown.misc_cost_bdt
+        }))) %>"
+      ></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.progress-bar[data-width]').forEach((bar) => {
+      bar.style.width = bar.getAttribute('data-width');
+    });
+
+    const ctx = document.getElementById('comparisonChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    let plans = [];
+    try {
+      plans = JSON.parse(ctx.dataset.plans || '[]');
+    } catch (e) {
+      console.error('Failed to parse comparison chart plans', e);
+    }
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: plans.map(p => p.title),
+        datasets: [
+          { label: 'Transportation (৳)', data: plans.map(p => p.transport), backgroundColor: '#0a5c36' },
+          { label: 'Hotel Accommodation (৳)', data: plans.map(p => p.hotel), backgroundColor: '#0d7377' },
+          { label: 'Food & Meals (৳)', data: plans.map(p => p.food), backgroundColor: '#f59e0b' },
+          { label: 'Local Transport, Activities & Guide (৳)', data: plans.map(p => p.localAndAct), backgroundColor: '#6366f1' }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true }
+        }
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

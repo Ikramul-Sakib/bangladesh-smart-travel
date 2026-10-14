@@ -1,0 +1,315 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+              <h2 class="fw-bold text-bd-emerald mb-1">
+                <i class="bi bi-calculator me-2"></i>Bangladesh Smart Travel Planning Form
+              </h2>
+              <p class="text-muted small mb-0">
+                Enter your travel dates, group size, and BDT budget to generate complete rule-based expense breakdowns
+              </p>
+            </div>
+            <span class="badge bg-warning text-dark px-3 py-2">All calculations verified on server</span>
+          </div>
+
+          <% if (validationErrors && validationErrors.length > 0) { %>
+            <div class="alert alert-danger small">
+              <h6 class="fw-bold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Please fix the following errors:</h6>
+              <ul class="mb-0 ps-3">
+                <% validationErrors.forEach(err => { %>
+                  <li><%= err %></li>
+                <% }) %>
+              </ul>
+            </div>
+          <% } %>
+
+          <form action="/trips/recommendations" method="POST" id="travelPlanForm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+            <div class="row g-3">
+              <!-- 1. Route & Dates -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Starting City / Location *</label>
+                <select name="starting_location" class="form-select" required>
+                  <% ['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh'].forEach(city => { %>
+                    <option value="<%= city %>" <%= formData.starting_location === city ? 'selected' : '' %>><%= city %></option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Destination in Bangladesh *</label>
+                <select name="destination_id" id="destinationSelect" class="form-select" required>
+                  <% destinations.forEach(dest => { %>
+                    <option value="<%= dest.id %>" <%= String(formData.destination_id) === String(dest.id) ? 'selected' : '' %>>
+                      <%= dest.name %> (<%= dest.division %> - <%= dest.landscape_type %>)
+                    </option>
+                  <% }) %>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Departure Date *</label>
+                <input
+                  type="date"
+                  name="departure_date"
+                  id="planDepartureDate"
+                  class="form-control"
+                  value="<%= formData.departure_date %>"
+                  required
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Return Date *</label>
+                <input
+                  type="date"
+                  name="return_date"
+                  id="planReturnDate"
+                  class="form-control"
+                  value="<%= formData.return_date %>"
+                  required
+                />
+              </div>
+
+              <!-- 2. Travelers & Budget -->
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Number of Adults *</label>
+                <input
+                  type="number"
+                  name="adults_count"
+                  class="form-control"
+                  min="1"
+                  max="100"
+                  value="<%= formData.adults_count || 4 %>"
+                  required
+                />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Number of Children</label>
+                <input
+                  type="number"
+                  name="children_count"
+                  class="form-control"
+                  min="0"
+                  max="50"
+                  value="<%= formData.children_count || 0 %>"
+                />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Travel Group Type *</label>
+                <select name="group_type" class="form-select">
+                  <option value="friends" <%= formData.group_type === 'friends' ? 'selected' : '' %>>Friends Group</option>
+                  <option value="family" <%= formData.group_type === 'family' ? 'selected' : '' %>>Family</option>
+                  <option value="solo" <%= formData.group_type === 'solo' ? 'selected' : '' %>>Solo Traveler</option>
+                  <option value="group" <%= formData.group_type === 'group' ? 'selected' : '' %>>Corporate / Large Tour</option>
+                </select>
+              </div>
+
+              <!-- Total Budget Slider + Number Input -->
+              <div class="col-12">
+                <div class="p-3 bg-light rounded-3 border">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold mb-0 text-bd-emerald">
+                      Total Group Travel Budget (৳ BDT) *
+                    </label>
+                    <span class="badge bg-bd-emerald fs-6" id="budgetBadgeDisplay">
+                      ৳<%= Number(formData.total_budget_bdt || 20000).toLocaleString() %>
+                    </span>
+                  </div>
+                  <div class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                      <input
+                        type="range"
+                        class="form-range"
+                        id="budgetSlider"
+                        min="2000"
+                        max="250000"
+                        step="1000"
+                        value="<%= formData.total_budget_bdt || 20000 %>"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <div class="input-group">
+                        <span class="input-group-text fw-bold">৳</span>
+                        <input
+                          type="number"
+                          name="total_budget_bdt"
+                          id="budgetInput"
+                          class="form-control fw-bold"
+                          min="1000"
+                          step="500"
+                          value="<%= formData.total_budget_bdt || 20000 %>"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Transport, Hotel & Food Preferences -->
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Preferred Transport *</label>
+                <select name="preferred_transport" class="form-select">
+                  <option value="bus" <%= formData.preferred_transport === 'bus' ? 'selected' : '' %>>Bus (AC / Non-AC)</option>
+                  <option value="train" <%= formData.preferred_transport === 'train' ? 'selected' : '' %>>Bangladesh Railway (Train)</option>
+                  <option value="private_car" <%= formData.preferred_transport === 'private_car' ? 'selected' : '' %>>Private Car / Microbus</option>
+                  <option value="launch" <%= formData.preferred_transport === 'launch' ? 'selected' : '' %>>Passenger Launch / Ship</option>
+                  <option value="flight" <%= formData.preferred_transport === 'flight' ? 'selected' : '' %>>Domestic Flight</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Accommodation Category *</label>
+                <select name="accommodation_category" class="form-select">
+                  <option value="budget" <%= formData.accommodation_category === 'budget' ? 'selected' : '' %>>Budget Hotel / Guesthouse</option>
+                  <option value="standard" <%= formData.accommodation_category === 'standard' ? 'selected' : '' %>>Standard 3-Star Hotel</option>
+                  <option value="premium" <%= formData.accommodation_category === 'premium' ? 'selected' : '' %>>Premium Resort / 5-Star</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">Food & Meal Preference *</label>
+                <select name="food_preference" class="form-select">
+                  <option value="budget" <%= formData.food_preference === 'budget' ? 'selected' : '' %>>Budget Local Dining</option>
+                  <option value="standard" <%= formData.food_preference === 'standard' ? 'selected' : '' %>>Standard Bengali & Seafood</option>
+                  <option value="premium" <%= formData.food_preference === 'premium' ? 'selected' : '' %>>Premium Buffet & BBQ</option>
+                </select>
+              </div>
+
+              <!-- 4. Preferred Tourist Attractions (Dynamic by Selected Destination) -->
+              <div class="col-12 mt-3">
+                <label class="form-label fw-semibold small d-block">
+                  Preferred Tourist Attractions & Activities (Filtered by Selected Destination)
+                </label>
+                <div class="row g-2 p-3 bg-light rounded-3 border" id="attractionsCheckboxes">
+                  <% if (attractions && attractions.length > 0) { %>
+                    <% attractions.forEach(attr => { %>
+                      <div class="col-md-4 attraction-item" data-dest-id="<%= attr.destination_id %>">
+                        <div class="form-check">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="attraction_ids"
+                            value="<%= attr.id %>"
+                            id="attr_<%= attr.id %>"
+                            checked
+                          />
+                          <label class="form-check-label small" for="attr_<%= attr.id %>">
+                            <%= attr.name %> (<span class="text-bd-emerald fw-semibold">৳<%= attr.entrance_fee_bdt %></span>)
+                          </label>
+                        </div>
+                      </div>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="col-12 small text-muted">Default destination attractions will be included automatically.</div>
+                  <% } %>
+                </div>
+              </div>
+
+              <!-- 5. Tour Guide & Additional Notes -->
+              <div class="col-md-6">
+                <div class="form-check form-switch mt-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    name="requires_guide"
+                    value="1"
+                    id="guideSwitch"
+                    <%= formData.requires_guide ? 'checked' : '' %>
+                  />
+                  <label class="form-check-label fw-semibold small" for="guideSwitch">
+                    Include Verified Tour Agent / Local Guide Fee in Calculation
+                  </label>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  name="additional_requirements"
+                  class="form-control form-control-sm"
+                  placeholder="Optional notes (e.g., wheelchair access, sea-view room)..."
+                  value="<%= formData.additional_requirements || '' %>"
+                />
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-bd-emerald btn-lg w-100 fw-bold">
+                  <i class="bi bi-magic me-2"></i>Calculate Expenses & Generate Ranked Travel Plans
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('budgetSlider');
+    const input = document.getElementById('budgetInput');
+    const badge = document.getElementById('budgetBadgeDisplay');
+    const destSelect = document.getElementById('destinationSelect');
+    const attractionItems = document.querySelectorAll('.attraction-item');
+    const depDate = document.getElementById('planDepartureDate');
+    const retDate = document.getElementById('planReturnDate');
+
+    const syncBudget = (val) => {
+      const num = Number(val) || 0;
+      badge.textContent = '৳' + num.toLocaleString();
+    };
+
+    slider.addEventListener('input', () => {
+      input.value = slider.value;
+      syncBudget(slider.value);
+    });
+
+    input.addEventListener('input', () => {
+      slider.value = input.value;
+      syncBudget(input.value);
+    });
+
+    const filterAttractionsByDest = () => {
+      const selectedDestId = String(destSelect.value);
+      attractionItems.forEach((el) => {
+        const checkbox = el.querySelector('input[type="checkbox"]');
+        if (el.getAttribute('data-dest-id') === selectedDestId) {
+          el.classList.remove('d-none');
+          checkbox.disabled = false;
+        } else {
+          el.classList.add('d-none');
+          checkbox.disabled = true;
+        }
+      });
+    };
+
+    if (destSelect) {
+      destSelect.addEventListener('change', filterAttractionsByDest);
+      filterAttractionsByDest();
+    }
+
+    if (depDate && retDate) {
+      depDate.addEventListener('change', () => {
+        retDate.min = depDate.value;
+        if (retDate.value < depDate.value) {
+          retDate.value = depDate.value;
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

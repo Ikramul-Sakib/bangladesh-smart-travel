@@ -1,0 +1,9 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <div class="container py-5 text-center my-auto">
+            <h1 class="display-3 fw-bold text-bd-emerald">404</h1>
+            <h3 class="fw-semibold mb-3">Destination or Page Not Found</h3>
+            <p class="text-muted mb-4">We couldn't find <code><%= requestedUrl %></code> on this server.</p>
+            <a href="/" class="btn btn-bd-emerald px-4">Return to Home</a>
+        </div>
+        <%- include('../partials/footer') %>

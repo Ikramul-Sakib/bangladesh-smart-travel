@@ -1,0 +1,196 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">Find Verified Tour Agents by Destination & Date</h2>
+      <p class="text-muted small mb-0">
+        Agents with conflicting confirmed bookings or unavailable schedule blocks are automatically filtered out
+      </p>
+    </div>
+  </div>
+
+  <!-- Comprehensive Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+    <form action="/agents" method="GET">
+      <% if (filters.travel_plan_id) { %>
+        <input type="hidden" name="travel_plan_id" value="<%= filters.travel_plan_id %>" />
+      <% } %>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Destination</label>
+          <select name="destination_id" class="form-select form-select-sm">
+            <option value="">All Destinations</option>
+            <% destinations.forEach(d => { %>
+              <option value="<%= d.id %>" <%= String(filters.destination_id) === String(d.id) ? 'selected' : '' %>>
+                <%= d.name %> (<%= d.division %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Departure Date</label>
+          <input type="date" name="departure_date" class="form-control form-control-sm" value="<%= filters.departure_date %>" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Return Date</label>
+          <input type="date" name="return_date" class="form-control form-control-sm" value="<%= filters.return_date %>" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Group Size (Min)</label>
+          <input type="number" name="travelers_count" class="form-control form-control-sm" min="1" placeholder="e.g., 4" value="<%= filters.travelers_count %>" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Max Service Fee (৳ BDT)</label>
+          <input type="number" name="max_service_fee_bdt" class="form-control form-control-sm" step="500" placeholder="e.g., 3500" value="<%= filters.max_service_fee_bdt %>" />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Tour Type</label>
+          <select name="tour_type" class="form-select form-select-sm">
+            <option value="">Any Tour Type</option>
+            <% ['Family', 'Friends', 'Solo', 'Group', 'Adventure', 'Heritage'].forEach(t => { %>
+              <option value="<%= t %>" <%= filters.tour_type === t ? 'selected' : '' %>><%= t %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Services Offered</label>
+          <input type="text" name="service_keyword" class="form-control form-control-sm" placeholder="e.g., Guide, Transport, Boat" value="<%= filters.service_keyword %>" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Language</label>
+          <select name="language" class="form-select form-select-sm">
+            <option value="">Any Language</option>
+            <option value="Bengali" <%= filters.language === 'Bengali' ? 'selected' : '' %>>Bengali</option>
+            <option value="English" <%= filters.language === 'English' ? 'selected' : '' %>>English</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Minimum Rating</label>
+          <select name="min_rating" class="form-select form-select-sm">
+            <option value="">Any Rating</option>
+            <option value="4" <%= filters.min_rating === '4' ? 'selected' : '' %>>4.0+ Stars</option>
+            <option value="3" <%= filters.min_rating === '3' ? 'selected' : '' %>>3.0+ Stars</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+          <button type="submit" class="btn btn-bd-emerald btn-sm w-100 fw-semibold">Filter Agents</button>
+          <a href="/agents" class="btn btn-outline-secondary btn-sm">Reset</a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Agent Profile Cards -->
+  <div class="row g-4">
+    <% if (agents && agents.length > 0) { %>
+      <% agents.forEach(agent => { %>
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="bg-bd-emerald text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 52px; height: 52px;">
+                    <%= agent.agency_name.charAt(0).toUpperCase() %>
+                  </div>
+                  <div>
+                    <h5 class="fw-bold mb-0"><%= agent.agency_name %></h5>
+                    <div class="small text-muted">Lead Guide: <%= agent.agent_name %></div>
+                  </div>
+                </div>
+                <% if (agent.is_verified) { %>
+                  <span class="badge bg-success-subtle text-success"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                <% } else { %>
+                  <span class="badge bg-secondary-subtle text-secondary">Demo Agent</span>
+                <% } %>
+              </div>
+
+              <!-- Rating & Capacity -->
+              <div class="d-flex justify-content-between align-items-center bg-light rounded-3 p-2 px-3 mb-3 small">
+                <span>
+                  <i class="bi bi-star-fill text-warning me-1"></i>
+                  <strong><%= Number(agent.rating_avg).toFixed(1) %></strong> (<%= agent.review_count %> reviews)
+                </span>
+                <span>
+                  <i class="bi bi-people-fill text-bd-emerald me-1"></i>
+                  Up to <strong><%= agent.max_group_capacity %></strong> travelers
+                </span>
+              </div>
+
+              <!-- Destinations Served -->
+              <div class="mb-2 small">
+                <strong class="text-secondary d-block mb-1">Destinations Served:</strong>
+                <% if (agent.destinations_served && agent.destinations_served.length > 0) { %>
+                  <% agent.destinations_served.forEach(ds => { %>
+                    <span class="badge bg-light text-dark border me-1 mb-1"><%= ds.destination_name %></span>
+                  <% }) %>
+                <% } else { %>
+                  <span class="text-muted">All Major Destinations</span>
+                <% } %>
+              </div>
+
+              <!-- Available Dates -->
+              <div class="mb-2 small">
+                <strong class="text-secondary d-block mb-1">Published Available Windows:</strong>
+                <% if (agent.available_windows && agent.available_windows.length > 0) { %>
+                  <% agent.available_windows.slice(0, 2).forEach(w => { %>
+                    <span class="badge bg-success-subtle text-success me-1 mb-1">
+                      <%= new Date(w.start_date).toLocaleDateString() %> - <%= new Date(w.end_date).toLocaleDateString() %>
+                    </span>
+                  <% }) %>
+                <% } else { %>
+                  <span class="badge bg-info-subtle text-info-emphasis">Open Schedule (No Conflicting Bookings)</span>
+                <% } %>
+              </div>
+
+              <div class="small text-muted mb-3">
+                <div><strong>Services:</strong> <%= agent.services_offered %></div>
+                <div><strong>Tour Types:</strong> <%= agent.tour_types %></div>
+                <div><strong>Languages:</strong> <%= agent.languages_spoken %></div>
+              </div>
+
+              <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="small text-muted">Service Fee</div>
+                  <div class="fs-5 fw-bold text-bd-emerald">৳<%= Number(agent.effective_service_fee_bdt).toLocaleString() %></div>
+                </div>
+                <div class="d-flex gap-2">
+                  <a
+                    href="/agents/<%= agent.agent_profile_id %>?destination_id=<%= filters.destination_id %>&departure_date=<%= filters.departure_date %>&return_date=<%= filters.return_date %>&travelers_count=<%= filters.travelers_count %>"
+                    class="btn btn-outline-secondary btn-sm"
+                  >
+                    Profile
+                  </a>
+                  <a
+                    href="/bookings/new?agent_profile_id=<%= agent.agent_profile_id %>&destination_id=<%= filters.destination_id %>&departure_date=<%= filters.departure_date %>&return_date=<%= filters.return_date %>&travelers_count=<%= filters.travelers_count %>&travel_plan_id=<%= filters.travel_plan_id %>"
+                    class="btn btn-bd-emerald btn-sm fw-semibold"
+                  >
+                    Request Booking
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div class="col-12 text-center py-5">
+        <div class="card border-0 shadow-sm rounded-4 p-5">
+          <i class="bi bi-calendar-x fs-1 text-warning mb-2"></i>
+          <h5 class="fw-bold">No Conflict-Free Tour Agents Match Your Filter</h5>
+          <p class="text-muted small mb-3">
+            Try adjusting your travel dates, increasing the maximum service fee, or clearing destination filters.
+          </p>
+          <div>
+            <a href="/agents" class="btn btn-bd-emerald btn-sm px-4">Show All Active Tour Agents</a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

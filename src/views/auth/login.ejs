@@ -1,0 +1,63 @@
+<%- include('../partials/head') %>
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <i class="bi bi-person-lock fs-1 text-bd-emerald"></i>
+                                    <h3 class="fw-bold mt-2">Sign In</h3>
+                                    <p class="text-muted small">Access your travel plans, agent bookings, or admin
+                                        dashboard</p>
+                                </div>
+
+                                <% if (validationErrors && validationErrors.length> 0) { %>
+                                    <div class="alert alert-danger small">
+                                        <ul class="mb-0 ps-3">
+                                            <% validationErrors.forEach(err=> { %>
+                                                <li>
+                                                    <%= err %>
+                                                </li>
+                                                <% }) %>
+                                        </ul>
+                                    </div>
+                                    <% } %>
+
+                                        <form action="/auth/login" method="POST" novalidate>
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold small">Email Address</label>
+                                                <input type="email" name="email" class="form-control"
+                                                    placeholder="you@example.com" value="<%= formData.email || '' %>"
+                                                    required />
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="form-label fw-semibold small">Password</label>
+                                                <input type="password" name="password" class="form-control"
+                                                    placeholder="Enter your password" required />
+                                            </div>
+
+                                            <button type="submit" class="btn btn-bd-emerald w-100 py-2 fw-semibold">
+                                                <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                                            </button>
+                                        </form>
+
+                                        <hr class="my-4" />
+                                        <div class="text-center small">
+                                            Don't have an account?
+                                            <a href="/auth/register"
+                                                class="fw-semibold text-bd-emerald text-decoration-none">Create Tourist
+                                                or Agent Account</a>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include('../partials/footer') %>
