@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { pool } = require('../config/database');
 const UserModel = require('../models/userModel');
 const { validateRegistrationInput, validateLoginInput } = require('../validators/authValidator');

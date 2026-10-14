@@ -18,6 +18,13 @@ const bookingRoutes = require('./src/routes/bookingRoutes');
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+
+const app = express();
+const PORT = Number(process.env.PORT) || 3000;
+
+// Required for Vercel / Render / Railway reverse proxies
+app.set('trust proxy', 1);
+
 // 1. Security Headers (allowing Bootstrap & Chart.js CDNs)
 app.use(
   helmet({
